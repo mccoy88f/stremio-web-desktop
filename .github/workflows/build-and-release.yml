@@ -44,25 +44,28 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
+            const fs = require('fs');
             try {
               const latestRelease = await github.rest.repos.getLatestRelease({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
               });
             
-              const fs = require('fs');
+              
               const githubEnvPath = process.env.GITHUB_ENV;
-              fs.appendFileSync(githubEnvPath, `DESCRIPTION=${latestRelease.data.body || ''}\n`);
-              fs.appendFileSync(githubEnvPath, `FOUND="true"\n`);
+              const description = latestRelease.data.body || '';
+              const escapedDescription = description.replace(/\n/g, '\\n').replace(/"/g, '\\"');
+              
+              fs.appendFileSync(githubEnvPath, `DESCRIPTION="${escapedDescription}"\n`);
+              fs.appendFileSync(githubEnvPath, `FOUND=true\n`);
             
             } catch (error) {
               if (error.status === 404) {
                 console.log('No releases found. This is the initial run.');
             
-                const fs = require('fs');
                 const githubEnvPath = process.env.GITHUB_ENV;
                 fs.appendFileSync(githubEnvPath, `DESCRIPTION=''\n`);
-                fs.appendFileSync(githubEnvPath, `FOUND="false"\n`);
+                fs.appendFileSync(githubEnvPath, `FOUND=false\n`);
               } else {
                 throw error;
               }
