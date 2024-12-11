@@ -195,16 +195,13 @@ jobs:
       # Step 3: Create GitHub Release
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1.14.0
-        env:
-          LATEST_COMMIT_HASH: ${{needs.check-and-build.outputs.latest_commit_hash}}
-          LATEST_SERVER_TAG: ${{needs.check-and-build.outputs.latest_server_tag}}
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: v${{ github.run_number }}
           name: "Stremio Web Desktop v${{ github.run_number }}"
           body: |
-            Web version: "$LATEST_COMMIT_HASH"
-            Server version: "$LATEST_SERVER_TAG"
+            Web version: ${{needs.check-and-build.outputs.latest_commit_hash}}
+            Server version: ${{needs.check-and-build.outputs.latest_server_tag}}
           artifacts: |
             out/windows/**/*.zip
             out/windows/**/*.exe
