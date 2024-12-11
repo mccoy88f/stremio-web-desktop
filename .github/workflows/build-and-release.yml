@@ -78,6 +78,11 @@ jobs:
           echo "latest_commit_hash=$LATEST_COMMIT_HASH" >> $GITHUB_OUTPUT
           echo "latest_server_tag=$LATEST_SERVER_TAG" >> $GITHUB_OUTPUT
 
+      - name: Debug Variables
+        run: |
+          echo "LATEST_COMMIT_HASH: $LATEST_COMMIT_HASH"
+          echo "LATEST_SERVER_TAG: $LATEST_SERVER_TAG"
+
       # Step 7: Upload stremio-web and stremio-server as artifacts
       - name: Upload stremio-web and stremio-server
         if: ${{ steps.set-output.outputs.new_release == 'true' }}
