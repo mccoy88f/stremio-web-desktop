@@ -211,7 +211,7 @@ jobs:
           tag: v${{ github.run_number }}
           name: "Stremio Web Desktop v${{ github.run_number }}"
           body: |
-            Web version: "${{needs.check-and-build.outputs.latest_commit_hash}}"
+            Web version: ${{needs.check-and-build.outputs.latest_commit_hash}}
             Server version: ${{needs.check-and-build.outputs.latest_server_tag}}
           artifacts: |
             out/windows/**/*.zip
