@@ -54,9 +54,13 @@ jobs:
             echo "new_release=true" >> $GITHUB_ENV
           fi
 
+      # Step 6: Set output for next job
+      - name: Set release status output
+        run: echo "::set-output name=new_release::$(cat $GITHUB_ENV | grep new_release | cut -d '=' -f 2)"
+
   build:
     needs: check-and-build
-    if: env.new_release == 'true'
+    if: needs.check-and-build.outputs.new_release == 'true'
     strategy:
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
@@ -102,7 +106,7 @@ jobs:
 
   release:
     needs: build
-    if: env.new_release == 'true'
+    if: needs.check-and-build.outputs.new_release == 'true'
     runs-on: ubuntu-latest
 
     steps:

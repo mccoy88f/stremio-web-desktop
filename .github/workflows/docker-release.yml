@@ -6,7 +6,7 @@ on:
   workflow_dispatch: # Allow manual trigger
 
 jobs:
-  fetch-and-build:
+  fetch-and-check:
     runs-on: ubuntu-latest
 
     steps:
@@ -58,9 +58,13 @@ jobs:
             echo "new_release=true" >> $GITHUB_ENV
           fi
 
+      # Step 7: Set output for next job
+      - name: Set release status output
+        run: echo "::set-output name=new_release::$(cat $GITHUB_ENV | grep new_release | cut -d '=' -f 2)"
+
   docker-build-and-push:
-    needs: fetch-and-build
-    if: env.new_release == 'true'
+    needs: fetch-and-check
+    if: needs.fetch-and-check.outputs.new_release == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -102,3 +106,4 @@ jobs:
             ```
             docker pull zaarrg/stremio-web-desktop:latest
             ```
+
