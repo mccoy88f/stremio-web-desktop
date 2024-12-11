@@ -105,10 +105,6 @@ jobs:
           name: stremio-artifacts
           path: src
 
-      # Step 3: List src directory for debugging
-      - name: List src directory
-        run: ls -la src
-
       - name: Docker Setup QEMU
         uses: docker/setup-qemu-action@v3
         id: qemu

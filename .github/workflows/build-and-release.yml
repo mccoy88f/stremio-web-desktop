@@ -103,10 +103,6 @@ jobs:
           name: stremio-artifacts
           path: src
 
-      # Step 3: List src directory for debugging
-      - name: List src directory
-        run: ls -la src
-
       # Step 4: Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v3
