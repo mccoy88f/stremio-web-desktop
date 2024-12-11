@@ -49,13 +49,18 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
               });
-              core.setOutput('description', latestRelease.data.body || '');
-              core.setOutput('found', true);
+            
+              const githubEnvPath = process.env.GITHUB_ENV;
+              fs.appendFileSync(githubEnvPath, `DESCRIPTION=${latestRelease.data.body || ''}\n`);
+              fs.appendFileSync(githubEnvPath, `FOUND="true"\n`);
+            
             } catch (error) {
               if (error.status === 404) {
                 console.log('No releases found. This is the initial run.');
-                core.setOutput('description', '');
-                core.setOutput('found', false);
+            
+                const githubEnvPath = process.env.GITHUB_ENV;
+                fs.appendFileSync(githubEnvPath, `DESCRIPTION=''\n`);
+                fs.appendFileSync(githubEnvPath, `FOUND="false"\n`);
               } else {
                 throw error;
               }
@@ -65,11 +70,10 @@ jobs:
       - name: Check for new versions and set outputs
         id: set-output
         run: |
-          if [ "${{ steps.latest-release.outputs.found }}" != "true" ]; then
+          if [ "$FOUND" != "true" ]; then
             echo "new_release=true" >> $GITHUB_OUTPUT
           else
-            LATEST_DESCRIPTION="${{ steps.latest-release.outputs.description }}"
-            if [[ "$LATEST_DESCRIPTION" == *"$LATEST_COMMIT_HASH"* && "$LATEST_DESCRIPTION" == *"$LATEST_SERVER_TAG"* ]]; then
+            if [[ "$DESCRIPTION" == *"$LATEST_COMMIT_HASH"* && "$DESCRIPTION" == *"$LATEST_SERVER_TAG"* ]]; then
               echo "new_release=false" >> $GITHUB_OUTPUT
             else
               echo "new_release=true" >> $GITHUB_OUTPUT
@@ -80,7 +84,8 @@ jobs:
 
       - name: Debug Variables
         run: |
-          echo "${{ steps.latest-release.outputs.description }}"
+          echo "DESCRIPTION: $DESCRIPTION"
+          echo "FOUND: $FOUND"
           echo "LATEST_COMMIT_HASH: $LATEST_COMMIT_HASH"
           echo "LATEST_SERVER_TAG: $LATEST_SERVER_TAG"
 
