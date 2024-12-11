@@ -104,6 +104,12 @@ jobs:
       - name: List src directory
         run: ls -la src
 
+      - name: Docker Setup QEMU
+        uses: docker/setup-qemu-action@v3
+        id: qemu
+        with:
+          platforms: amd64,arm64
+
       # Step 4: Log in to GitHub Container Registry
       - name: Log into ghcr.io registry
         uses: docker/login-action@v3.1.0
