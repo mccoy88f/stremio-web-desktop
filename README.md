@@ -45,11 +45,11 @@ To run the Stremio server and Web ui using Docker:
 
 1. 📥 **Pull the latest Docker image**:
     ```bash
-   docker pull zaarrg/stremio-web-desktop:latest
+   docker pull ghcr.io/zaarrg/stremio-web-desktop:latest
     ```
 2. 🚀 **Run the container**:
     ```bash
-   docker run -p 11470:11470 -p 12470:12470 -p 8080:8080 zaarrg/stremio-web-desktop:latest
+   docker run -p 11470:11470 -p 12470:12470 -p 8080:8080 ghcr.io/zaarrg/stremio-web-desktop:latest
     ```
 **📌 Ports Overview:**
 - 🔌 **11470**: Stremio Server (http communication)
