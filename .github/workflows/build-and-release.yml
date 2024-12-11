@@ -128,7 +128,7 @@ jobs:
             echo "Creating ZIP for Windows..."
             mkdir -p out/windows/
             # Compress with PowerShell, excluding start.exe
-            pwsh -Command "Compress-Archive -Path out/stremio-web-dekstop-win32-x64/* -DestinationPath out/windows/stremio-web-dekstop-win32-x64.zip
+            pwsh -Command "Compress-Archive -Path 'out/stremio-web-dekstop-win32-x64/*' -DestinationPath 'out/windows/stremio-web-dekstop-win32-x64.zip'"
             # Find the setup.exe with random name and copy to out/windows/
             setup_exe=$(find out/make/squirrel.windows/x64/ -type f -name "*.exe" | head -n 1)
             cp "$setup_exe" out/windows/
