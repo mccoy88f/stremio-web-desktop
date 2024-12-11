@@ -1,0 +1,132 @@
+name: Nightly Build and Release
+
+on:
+  schedule:
+    - cron: "0 0 * * *" # Runs every day at midnight (UTC)
+  workflow_dispatch: # Allows manual trigger.
+
+jobs:
+  check-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      # Step 3: Fetch latest Stremio versions
+      - name: Fetch latest Stremio versions
+        id: fetch-versions
+        run: node fetch-latest-stremio.js
+
+      # Step 4: Get the latest release description
+      - name: Get latest release
+        id: latest-release
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const latestRelease = await github.rest.repos.getLatestRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            const description = latestRelease.data.body;
+            core.setOutput('result', description);
+
+      # Step 5: Compare fetched versions with release versions
+      - name: Check for new versions
+        id: compare-versions
+        run: |
+          echo "Latest release description: ${{ steps.latest-release.outputs.result }}"
+          echo "Fetched web version: ${{ env.LATEST_COMMIT_HASH }}"
+          echo "Fetched server version: ${{ env.LATEST_SERVER_TAG }}"
+
+          if [[ "${{ steps.latest-release.outputs.result }}" == *"Web version: ${{ env.LATEST_COMMIT_HASH }}"* && "${{ steps.latest-release.outputs.result }}" == *"Server version: ${{ env.LATEST_SERVER_TAG }}"* ]]; then
+            echo "No new versions detected."
+            echo "new_release=false" >> $GITHUB_ENV
+          else
+            echo "New versions detected!"
+            echo "new_release=true" >> $GITHUB_ENV
+          fi
+
+  build:
+    needs: check-and-build
+    if: env.new_release == 'true'
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      # Step 1: Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Step 4: Build for platform
+      - name: Build for ${{ matrix.os }}
+        run: |
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            npm run make -- --platform=win32;
+          elif [ "${{ matrix.os }}" == "macos-latest" ]; then
+            npm run make -- --platform=darwin;
+          elif [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+            npm run make -- --platform=linux;
+          fi
+
+      # Step 5: Upload artifacts
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: stremio-${{ matrix.os }}
+          path: |
+            out/make/**/*.exe
+            out/make/**/*.zip
+            out/make/**/*.dmg
+            out/make/**/*.deb
+            out/make/**/*.rpm
+
+  release:
+    needs: build
+    if: env.new_release == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Download all artifacts
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+
+      # Step 3: Create GitHub Release
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: v${{ github.run_number }}
+          release_name: "Stremio Web Desktop v${{ github.run_number }}"
+          body: |
+            Web version: ${{ env.LATEST_COMMIT_HASH }}
+            Server version: ${{ env.LATEST_SERVER_TAG }}
+          files: |
+            **/*.exe
+            **/*.zip
+            **/*.dmg
+            **/*.deb
+            **/*.rpm

@@ -1,0 +1,104 @@
+name: Docker Build and Release
+
+on:
+  schedule:
+    - cron: "0 0 * * *" # Run every day at midnight
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  fetch-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Step 4: Fetch latest Stremio versions
+      - name: Fetch latest Stremio versions
+        id: fetch-versions
+        run: node fetch-latest-stremio.js
+
+      # Step 5: Get the latest release description
+      - name: Get latest release
+        id: latest-release
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const latestRelease = await github.rest.repos.getLatestRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            const description = latestRelease.data.body;
+            core.setOutput('result', description);
+
+      # Step 6: Compare fetched versions with release versions
+      - name: Check for new versions
+        id: compare-versions
+        run: |
+          echo "Latest release description: ${{ steps.latest-release.outputs.result }}"
+          echo "Fetched web version: ${{ env.LATEST_COMMIT_HASH }}"
+          echo "Fetched server version: ${{ env.LATEST_SERVER_TAG }}"
+
+          if [[ "${{ steps.latest-release.outputs.result }}" == *"Web version: ${{ env.LATEST_COMMIT_HASH }}"* && "${{ steps.latest-release.outputs.result }}" == *"Server version: ${{ env.LATEST_SERVER_TAG }}"* ]]; then
+            echo "No new versions detected."
+            echo "new_release=false" >> $GITHUB_ENV
+          else
+            echo "New versions detected!"
+            echo "new_release=true" >> $GITHUB_ENV
+          fi
+
+  docker-build-and-push:
+    needs: fetch-and-build
+    if: env.new_release == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Log in to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Step 3: Build and push Docker image
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: |
+            zaarrg/stremio-web-desktop:latest
+            zaarrg/stremio-web-desktop:${{ env.LATEST_COMMIT_HASH }}-${{ env.LATEST_SERVER_TAG }}
+
+      # Step 4: Create GitHub Release
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: v${{ github.run_number }}
+          release_name: "Docker Image - Stremio Web Desktop v${{ github.run_number }}"
+          body: |
+            Docker image with:
+            - Web version: ${{ env.LATEST_COMMIT_HASH }}
+            - Server version: ${{ env.LATEST_SERVER_TAG }}
+
+            Pull the image:
+            ```
+            docker pull zaarrg/stremio-web-desktop:latest
+            ```
