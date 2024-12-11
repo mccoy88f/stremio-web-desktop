@@ -69,14 +69,14 @@ jobs:
             echo "new_release=true" >> $GITHUB_OUTPUT
           else
             LATEST_DESCRIPTION="${{ steps.latest-release.outputs.description }}"
-            if [[ "$LATEST_DESCRIPTION" == *"Web version: ${{ env.LATEST_COMMIT_HASH }}"* && "$LATEST_DESCRIPTION" == *"Server version: ${{ env.LATEST_SERVER_TAG }}"* ]]; then
+            if [[ "$LATEST_DESCRIPTION" == *"Web version: $LATEST_COMMIT_HASH"* && "$LATEST_DESCRIPTION" == *"Server version: $LATEST_SERVER_TAG"* ]]; then
               echo "new_release=false" >> $GITHUB_OUTPUT
             else
               echo "new_release=true" >> $GITHUB_OUTPUT
             fi
           fi
-          echo "latest_commit_hash=${{ env.LATEST_COMMIT_HASH }}" >> $GITHUB_OUTPUT
-          echo "latest_server_tag=${{ env.LATEST_SERVER_TAG }}" >> $GITHUB_OUTPUT
+          echo "latest_commit_hash=$LATEST_COMMIT_HASH" >> $GITHUB_OUTPUT
+          echo "latest_server_tag=$LATEST_SERVER_TAG" >> $GITHUB_OUTPUT
 
       # Step 7: Upload stremio-web and stremio-server as artifacts
       - name: Upload stremio-web and stremio-server
@@ -195,8 +195,8 @@ jobs:
             Web version: ${{ needs.check-and-build.outputs.latest_commit_hash }}
             Server version: ${{ needs.check-and-build.outputs.latest_server_tag }}
           artifacts: |
-            out/windows/stremio-web-dekstop-win32-x64.zip
-            out/windows/*.exe
+            out/windows/**/*.zip
+            out/windows/**/*.exe
             out/macos/**/*.dmg
             out/ubuntu/**/*.deb
             out/ubuntu/**/*.rpm
