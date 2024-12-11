@@ -5,6 +5,11 @@ on:
     - cron: "0 0 * * *" # Runs every day at midnight UTC
   workflow_dispatch: # Allows manual trigger
 
+permissions:
+  contents: write
+  packages: write
+  security-events: write
+
 jobs:
   check-and-build:
     runs-on: ubuntu-latest
@@ -25,7 +30,7 @@ jobs:
         with:
           node-version: '20'
 
-      # **New Step 3: Install dependencies**
+      # Step 3: Install dependencies
       - name: Install dependencies
         run: npm install
 
@@ -103,37 +108,50 @@ jobs:
           name: stremio-artifacts
           path: src
 
-      # Step 4: Set up Node.js
+      # Step 3: Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20'
 
-      # Step 5: Install dependencies
+      # Step 4: Install dependencies
       - name: Install dependencies
         run: npm install
 
-      # Step 6: Build for platform
+      # Step 5: Build for platform and handle Windows ZIP and setup.exe
       - name: Build for ${{ matrix.os }}
         shell: bash
         run: |
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            npm run make -- --platform=win32;
+            echo "Building for Windows..."
+            npm run make -- --platform=win32
+            echo "Creating ZIP for Windows..."
+            mkdir -p out/windows/
+            # Compress with PowerShell, excluding start.exe
+            pwsh -Command "Compress-Archive -Path out/stremio-web-dekstop-win32-x64/* -DestinationPath out/windows/stremio-web-dekstop-win32-x64.zip
+            # Find the setup.exe with random name and copy to out/windows/
+            setup_exe=$(find out/make/squirrel.windows/x64/ -type f -name "*.exe" | head -n 1)
+            cp "$setup_exe" out/windows/
           elif [ "${{ matrix.os }}" == "macos-latest" ]; then
-            npm run make -- --platform=darwin;
+            echo "Building for macOS..."
+            npm run make -- --platform=darwin
           elif [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
-            npm run make -- --platform=linux;
+            echo "Building for Linux..."
+            npm run make -- --platform=linux
           fi
 
-      # Step 7: Upload build artifacts
+      # Step 6: Upload build artifacts
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: stremio-${{ matrix.os }}
           path: |
-            out/make/**/*.exe
-            out/make/**/*.zip
+            # Windows: Upload ZIP and setup.exe
+            out/windows/*.zip
+            out/windows/*.exe
+            # macOS: Upload DMG
             out/make/**/*.dmg
+            # Ubuntu: Upload DEB and RPM
             out/make/**/*.deb
             out/make/**/*.rpm
 
@@ -168,17 +186,20 @@ jobs:
 
       # Step 3: Create GitHub Release
       - name: Create GitHub Release
-        uses: ncipollo/release-action@v1
+        uses: ncipollo/release-action@v1.5.3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: v${{ github.run_number }}
-          release_name: "Stremio Web Desktop v${{ github.run_number }}"
+          name: "Stremio Web Desktop v${{ github.run_number }}"
           body: |
             Web version: ${{ needs.check-and-build.outputs.latest_commit_hash }}
             Server version: ${{ needs.check-and-build.outputs.latest_server_tag }}
           files: |
-            out/windows/**/*.exe
-            out/windows/**/*.zip
+            # Windows: ZIP and setup.exe
+            out/windows/stremio-web-dekstop-win32-x64.zip
+            out/windows/*.exe
+            # macOS: DMG
             out/macos/**/*.dmg
+            # Ubuntu: DEB and RPM
             out/ubuntu/**/*.deb
             out/ubuntu/**/*.rpm
