@@ -81,7 +81,7 @@ jobs:
       # Step 7: Upload stremio-web and stremio-server as artifacts
       - name: Upload stremio-web and stremio-server
         if: ${{ steps.set-output.outputs.new_release == 'true' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: stremio-artifacts
           path: |
@@ -100,7 +100,7 @@ jobs:
 
       # Step 2: Download stremio-artifacts
       - name: Download stremio-artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: stremio-artifacts
           path: src

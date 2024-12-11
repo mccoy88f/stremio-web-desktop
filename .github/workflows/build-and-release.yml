@@ -72,7 +72,7 @@ jobs:
       # Step 6: Upload stremio-web and stremio-server as artifacts
       - name: Upload stremio-web and stremio-server
         if: ${{ steps.set-output.outputs.new_release == 'true' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: stremio-artifacts
           path: |
@@ -94,7 +94,7 @@ jobs:
 
       # Step 2: Download stremio-artifacts
       - name: Download stremio-artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: stremio-artifacts
           path: src
@@ -126,7 +126,7 @@ jobs:
 
       # Step 7: Upload artifacts
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: stremio-${{ matrix.os }}
           path: |
@@ -148,19 +148,19 @@ jobs:
 
       # Step 2: Download all artifacts
       - name: Download Windows artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: stremio-windows-latest
           path: out/windows
 
       - name: Download macOS artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: stremio-macos-latest
           path: out/macos
 
       - name: Download Ubuntu artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: stremio-ubuntu-latest
           path: out/ubuntu
