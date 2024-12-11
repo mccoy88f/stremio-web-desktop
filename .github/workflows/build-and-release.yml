@@ -2,16 +2,21 @@ name: Nightly Build and Release
 
 on:
   schedule:
-    - cron: "0 0 * * *" # Runs every day at midnight (UTC)
+    - cron: "0 0 * * *" # Runs every day at midnight UTC
   workflow_dispatch: # Allows manual trigger
 
 jobs:
   check-and-build:
     runs-on: ubuntu-latest
 
+    outputs:
+      new_release: ${{ steps.set-output.outputs.new_release }}
+      latest_commit_hash: ${{ steps.set-output.outputs.latest_commit_hash }}
+      latest_server_tag: ${{ steps.set-output.outputs.latest_server_tag }}
+
     steps:
       # Step 1: Checkout repository
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       # Step 2: Set up Node.js
@@ -22,7 +27,6 @@ jobs:
 
       # Step 3: Fetch latest Stremio versions
       - name: Fetch latest Stremio versions
-        id: fetch-versions
         run: node scripts/fetch-latest-stremio.js
 
       # Step 4: Get the latest release description
@@ -48,30 +52,26 @@ jobs:
               }
             }
 
-      # Step 5: Compare fetched versions with release versions
-      - name: Check for new versions
-        id: compare-versions
+      # Step 5: Compare fetched versions with release versions and set job outputs
+      - name: Check for new versions and set outputs
+        id: set-output
         run: |
           if [ "${{ steps.latest-release.outputs.found }}" != "true" ]; then
-            echo "No previous release found. Proceeding with initial release."
-            echo "new_release=true" >> $GITHUB_ENV
+            echo "new_release=true" >> $GITHUB_OUTPUT
           else
-            echo "Latest release description: ${{ steps.latest-release.outputs.description }}"
-            echo "Fetched web version: ${{ env.LATEST_COMMIT_HASH }}"
-            echo "Fetched server version: ${{ env.LATEST_SERVER_TAG }}"
-          
-            if [[ "${{ steps.latest-release.outputs.description }}" == *"Web version: ${{ env.LATEST_COMMIT_HASH }}"* && "${{ steps.latest-release.outputs.description }}" == *"Server version: ${{ env.LATEST_SERVER_TAG }}"* ]]; then
-              echo "No new versions detected."
-              echo "new_release=false" >> $GITHUB_ENV
+            LATEST_DESCRIPTION="${{ steps.latest-release.outputs.description }}"
+            if [[ "$LATEST_DESCRIPTION" == *"Web version: ${{ env.LATEST_COMMIT_HASH }}"* && "$LATEST_DESCRIPTION" == *"Server version: ${{ env.LATEST_SERVER_TAG }}"* ]]; then
+              echo "new_release=false" >> $GITHUB_OUTPUT
             else
-              echo "New versions detected!"
-              echo "new_release=true" >> $GITHUB_ENV
+              echo "new_release=true" >> $GITHUB_OUTPUT
             fi
           fi
+          echo "latest_commit_hash=${{ env.LATEST_COMMIT_HASH }}" >> $GITHUB_OUTPUT
+          echo "latest_server_tag=${{ env.LATEST_SERVER_TAG }}" >> $GITHUB_OUTPUT
 
   build:
     needs: check-and-build
-    if: ${{ env.new_release == 'true' }}
+    if: ${{ needs.check-and-build.outputs.new_release == 'true' }}
     strategy:
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
@@ -79,7 +79,7 @@ jobs:
 
     steps:
       # Step 1: Checkout repository
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       # Step 2: Set up Node.js
@@ -117,12 +117,12 @@ jobs:
 
   release:
     needs: build
-    if: ${{ env.new_release == 'true' }}
+    if: ${{ needs.check-and-build.outputs.new_release == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
       # Step 1: Checkout repository
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       # Step 2: Download all artifacts
@@ -137,8 +137,8 @@ jobs:
           tag: v${{ github.run_number }}
           release_name: "Stremio Web Desktop v${{ github.run_number }}"
           body: |
-            Web version: ${{ env.LATEST_COMMIT_HASH }}
-            Server version: ${{ env.LATEST_SERVER_TAG }}
+            Web version: ${{ needs.check-and-build.outputs.latest_commit_hash }}
+            Server version: ${{ needs.check-and-build.outputs.latest_server_tag }}
           files: |
             **/*.exe
             **/*.zip

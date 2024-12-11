@@ -2,16 +2,21 @@ name: Docker Build and Release
 
 on:
   schedule:
-    - cron: "0 0 * * *" # Runs every day at midnight
+    - cron: "0 0 * * *" # Runs every day at midnight UTC
   workflow_dispatch: # Allows manual trigger
 
 jobs:
   fetch-and-check:
     runs-on: ubuntu-latest
 
+    outputs:
+      new_release: ${{ steps.set-output.outputs.new_release }}
+      latest_commit_hash: ${{ steps.set-output.outputs.latest_commit_hash }}
+      latest_server_tag: ${{ steps.set-output.outputs.latest_server_tag }}
+
     steps:
       # Step 1: Checkout the repository
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       # Step 2: Set up Node.js
@@ -26,7 +31,6 @@ jobs:
 
       # Step 4: Fetch latest Stremio versions
       - name: Fetch latest Stremio versions
-        id: fetch-versions
         run: node scripts/fetch-latest-stremio.js
 
       # Step 5: Get the latest release description
@@ -52,35 +56,31 @@ jobs:
               }
             }
 
-      # Step 6: Compare fetched versions with release versions
-      - name: Check for new versions
-        id: compare-versions
+      # Step 6: Compare fetched versions with release versions and set job outputs
+      - name: Check for new versions and set outputs
+        id: set-output
         run: |
           if [ "${{ steps.latest-release.outputs.found }}" != "true" ]; then
-            echo "No previous release found. Proceeding with initial release."
-            echo "new_release=true" >> $GITHUB_ENV
+            echo "new_release=true" >> $GITHUB_OUTPUT
           else
-            echo "Latest release description: ${{ steps.latest-release.outputs.description }}"
-            echo "Fetched web version: ${{ env.LATEST_COMMIT_HASH }}"
-            echo "Fetched server version: ${{ env.LATEST_SERVER_TAG }}"
-          
-            if [[ "${{ steps.latest-release.outputs.description }}" == *"Web version: ${{ env.LATEST_COMMIT_HASH }}"* && "${{ steps.latest-release.outputs.description }}" == *"Server version: ${{ env.LATEST_SERVER_TAG }}"* ]]; then
-              echo "No new versions detected."
-              echo "new_release=false" >> $GITHUB_ENV
+            LATEST_DESCRIPTION="${{ steps.latest-release.outputs.description }}"
+            if [[ "$LATEST_DESCRIPTION" == *"Web version: ${{ env.LATEST_COMMIT_HASH }}"* && "$LATEST_DESCRIPTION" == *"Server version: ${{ env.LATEST_SERVER_TAG }}"* ]]; then
+              echo "new_release=false" >> $GITHUB_OUTPUT
             else
-              echo "New versions detected!"
-              echo "new_release=true" >> $GITHUB_ENV
+              echo "new_release=true" >> $GITHUB_OUTPUT
             fi
           fi
+          echo "latest_commit_hash=${{ env.LATEST_COMMIT_HASH }}" >> $GITHUB_OUTPUT
+          echo "latest_server_tag=${{ env.LATEST_SERVER_TAG }}" >> $GITHUB_OUTPUT
 
   docker-build-and-push:
     needs: fetch-and-check
-    if: ${{ env.new_release == 'true' }}
+    if: ${{ needs.fetch-and-check.outputs.new_release == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
       # Step 1: Checkout the repository
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       # Step 2: Log in to GitHub Container Registry
@@ -100,4 +100,4 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/stremio-web-desktop:latest
-            ghcr.io/${{ github.repository_owner }}/stremio-web-desktop:${{ env.LATEST_COMMIT_HASH }}-${{ env.LATEST_SERVER_TAG }}
+            ghcr.io/${{ github.repository_owner }}/stremio-web-desktop:${{ needs.fetch-and-check.outputs.latest_commit_hash }}-${{ needs.fetch-and-check.outputs.latest_server_tag }}
