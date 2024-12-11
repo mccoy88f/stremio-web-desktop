@@ -52,7 +52,7 @@ jobs:
               }
             }
 
-      # Step 5: Compare fetched versions with release versions and set job outputs
+      # Step 5: Compare fetched versions with release versions and set outputs
       - name: Check for new versions and set outputs
         id: set-output
         run: |
@@ -69,6 +69,16 @@ jobs:
           echo "latest_commit_hash=${{ env.LATEST_COMMIT_HASH }}" >> $GITHUB_OUTPUT
           echo "latest_server_tag=${{ env.LATEST_SERVER_TAG }}" >> $GITHUB_OUTPUT
 
+      # Step 6: Upload stremio-web and stremio-server as artifacts
+      - name: Upload stremio-web and stremio-server
+        if: ${{ steps.set-output.outputs.new_release == 'true' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: stremio-artifacts
+          path: |
+            src/stremio-web
+            src/stremio-server
+
   build:
     needs: check-and-build
     if: ${{ needs.check-and-build.outputs.new_release == 'true' }}
@@ -82,17 +92,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Step 2: Set up Node.js
+      # Step 2: Download stremio-artifacts
+      - name: Download stremio-artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: stremio-artifacts
+          path: src
+
+      # Step 3: List src directory for debugging
+      - name: List src directory
+        run: ls -la src
+
+      # Step 4: Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20'
 
-      # Step 3: Install dependencies
+      # Step 5: Install dependencies
       - name: Install dependencies
         run: npm install
 
-      # Step 4: Build for platform
+      # Step 6: Build for platform
       - name: Build for ${{ matrix.os }}
         run: |
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
@@ -103,7 +124,7 @@ jobs:
             npm run make -- --platform=linux;
           fi
 
-      # Step 5: Upload artifacts
+      # Step 7: Upload artifacts
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -126,8 +147,23 @@ jobs:
         uses: actions/checkout@v3
 
       # Step 2: Download all artifacts
-      - name: Download all artifacts
+      - name: Download Windows artifacts
         uses: actions/download-artifact@v3
+        with:
+          name: stremio-windows-latest
+          path: out/windows
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: stremio-macos-latest
+          path: out/macos
+
+      - name: Download Ubuntu artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: stremio-ubuntu-latest
+          path: out/ubuntu
 
       # Step 3: Create GitHub Release
       - name: Create GitHub Release
@@ -140,8 +176,8 @@ jobs:
             Web version: ${{ needs.check-and-build.outputs.latest_commit_hash }}
             Server version: ${{ needs.check-and-build.outputs.latest_server_tag }}
           files: |
-            **/*.exe
-            **/*.zip
-            **/*.dmg
-            **/*.deb
-            **/*.rpm
+            out/windows/**/*.exe
+            out/windows/**/*.zip
+            out/macos/**/*.dmg
+            out/ubuntu/**/*.deb
+            out/ubuntu/**/*.rpm

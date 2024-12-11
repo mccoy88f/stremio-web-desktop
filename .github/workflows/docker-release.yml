@@ -15,7 +15,7 @@ jobs:
       latest_server_tag: ${{ steps.set-output.outputs.latest_server_tag }}
 
     steps:
-      # Step 1: Checkout the repository
+      # Step 1: Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -73,17 +73,38 @@ jobs:
           echo "latest_commit_hash=${{ env.LATEST_COMMIT_HASH }}" >> $GITHUB_OUTPUT
           echo "latest_server_tag=${{ env.LATEST_SERVER_TAG }}" >> $GITHUB_OUTPUT
 
+      # Step 7: Upload stremio-web and stremio-server as artifacts
+      - name: Upload stremio-web and stremio-server
+        if: ${{ steps.set-output.outputs.new_release == 'true' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: stremio-artifacts
+          path: |
+            src/stremio-web
+            src/stremio-server
+
   docker-build-and-push:
     needs: fetch-and-check
     if: ${{ needs.fetch-and-check.outputs.new_release == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the repository
+      # Step 1: Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Step 2: Log in to GitHub Container Registry
+      # Step 2: Download stremio-artifacts
+      - name: Download stremio-artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: stremio-artifacts
+          path: src
+
+      # Step 3: List src directory for debugging
+      - name: List src directory
+        run: ls -la src
+
+      # Step 4: Log in to GitHub Container Registry
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v2
         with:
@@ -91,7 +112,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Step 3: Build and push Docker image to GHCR
+      # Step 5: Build and push Docker image to GHCR
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
