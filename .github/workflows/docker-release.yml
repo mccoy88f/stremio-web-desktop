@@ -123,14 +123,13 @@ jobs:
 
       # Step 5: Build and push Docker image to GHCR
       - name: Build and push Docker image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5.3.0
         with:
           context: .
-          file: Dockerfile
+          file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
             ghcr.io/zaarrg/stremio-web-desktop:latest
-            ghcr.io/zaarrg/stremio-web-desktop:${{ needs.fetch-and-check.outputs.latest_commit_hash }}-${{ needs.fetch-and-check.outputs.latest_server_tag }}
