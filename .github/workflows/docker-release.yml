@@ -27,7 +27,7 @@ jobs:
       # Step 4: Fetch latest Stremio versions
       - name: Fetch latest Stremio versions
         id: fetch-versions
-        run: node fetch-latest-stremio.js
+        run: node scripts/fetch-latest-stremio.js
 
       # Step 5: Get the latest release description
       - name: Get latest release
