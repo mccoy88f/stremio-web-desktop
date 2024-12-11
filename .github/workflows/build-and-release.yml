@@ -50,6 +50,7 @@ jobs:
                 repo: context.repo.repo,
               });
             
+              const fs = require('fs');
               const githubEnvPath = process.env.GITHUB_ENV;
               fs.appendFileSync(githubEnvPath, `DESCRIPTION=${latestRelease.data.body || ''}\n`);
               fs.appendFileSync(githubEnvPath, `FOUND="true"\n`);
@@ -58,6 +59,7 @@ jobs:
               if (error.status === 404) {
                 console.log('No releases found. This is the initial run.');
             
+                const fs = require('fs');
                 const githubEnvPath = process.env.GITHUB_ENV;
                 fs.appendFileSync(githubEnvPath, `DESCRIPTION=''\n`);
                 fs.appendFileSync(githubEnvPath, `FOUND="false"\n`);
