@@ -73,13 +73,9 @@ jobs:
             fi
           fi
 
-      # Step 7: Set output for next job
-      - name: Set release status output
-        run: echo "::set-output name=new_release::$(cat $GITHUB_ENV | grep new_release | cut -d '=' -f 2)"
-
   docker-build-and-push:
     needs: fetch-and-check
-    if: needs.fetch-and-check.outputs.new_release == 'true'
+    if: env.new_release == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -105,20 +101,3 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/stremio-web-desktop:latest
             ghcr.io/${{ github.repository_owner }}/stremio-web-desktop:${{ env.LATEST_COMMIT_HASH }}-${{ env.LATEST_SERVER_TAG }}
-
-      # Step 4: Create GitHub Release
-      - name: Create GitHub Release
-        uses: ncipollo/release-action@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag: v${{ github.run_number }}
-          release_name: "Docker Image - Stremio Web Desktop v${{ github.run_number }}"
-          body: |
-            Docker image with:
-            - Web version: ${{ env.LATEST_COMMIT_HASH }}
-            - Server version: ${{ env.LATEST_SERVER_TAG }}
-
-            Pull the image:
-            ```
-            docker pull ghcr.io/${{ github.repository_owner }}/stremio-web-desktop:latest
-            ```
