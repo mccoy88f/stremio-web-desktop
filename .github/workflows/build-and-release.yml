@@ -69,7 +69,7 @@ jobs:
             echo "new_release=true" >> $GITHUB_OUTPUT
           else
             LATEST_DESCRIPTION="${{ steps.latest-release.outputs.description }}"
-            if [[ "$LATEST_DESCRIPTION" == *"Web version: $LATEST_COMMIT_HASH"* && "$LATEST_DESCRIPTION" == *"Server version: $LATEST_SERVER_TAG"* ]]; then
+            if [[ "$LATEST_DESCRIPTION" == *"$LATEST_COMMIT_HASH"* && "$LATEST_DESCRIPTION" == *"$LATEST_SERVER_TAG"* ]]; then
               echo "new_release=false" >> $GITHUB_OUTPUT
             else
               echo "new_release=true" >> $GITHUB_OUTPUT
@@ -80,6 +80,7 @@ jobs:
 
       - name: Debug Variables
         run: |
+          echo ${{ steps.latest-release.outputs.description }}
           echo "LATEST_COMMIT_HASH: $LATEST_COMMIT_HASH"
           echo "LATEST_SERVER_TAG: $LATEST_SERVER_TAG"
 
