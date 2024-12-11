@@ -186,7 +186,7 @@ jobs:
 
       # Step 3: Create GitHub Release
       - name: Create GitHub Release
-        uses: ncipollo/release-action@v1.5.3
+        uses: ncipollo/release-action@v1.14.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: v${{ github.run_number }}
@@ -194,12 +194,9 @@ jobs:
           body: |
             Web version: ${{ needs.check-and-build.outputs.latest_commit_hash }}
             Server version: ${{ needs.check-and-build.outputs.latest_server_tag }}
-          files: |
-            # Windows: ZIP and setup.exe
-            out/windows/stremio-web-desktop-win32-x64.zip
+          artifacts: |
+            out/windows/stremio-web-dekstop-win32-x64.zip
             out/windows/*.exe
-            # macOS: DMG
             out/macos/**/*.dmg
-            # Ubuntu: DEB and RPM
             out/ubuntu/**/*.deb
             out/ubuntu/**/*.rpm
