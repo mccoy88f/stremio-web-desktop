@@ -4,6 +4,9 @@ on:
   schedule:
     - cron: "0 0 * * *" # Runs every day at midnight UTC
   workflow_dispatch: # Allows manual trigger
+  push: # Triggers on commits
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -103,6 +106,16 @@ jobs:
           path: |
             src/stremio-web
             src/stremio-server
+
+      - name: Check trigger type
+        id: check-trigger
+        run: |
+          if [ "${{ github.event_name }}" == "push" ]; then
+            echo "new_release=true" >> $GITHUB_OUTPUT
+            echo "Triggered by push. Skipping version check."
+          else
+            echo "new_release=false" >> $GITHUB_OUTPUT
+          fi
 
   docker-build-and-push:
     needs: fetch-and-check
