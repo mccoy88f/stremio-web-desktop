@@ -44,18 +44,28 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
+            const fs = require('fs');
             try {
               const latestRelease = await github.rest.repos.getLatestRelease({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
               });
-              core.setOutput('description', latestRelease.data.body || '');
-              core.setOutput('found', true);
+            
+            
+              const githubEnvPath = process.env.GITHUB_ENV;
+              const description = latestRelease.data.body || '';
+              const escapedDescription = description.replace(/\n/g, '\\n').replace(/"/g, '\\"');
+            
+              fs.appendFileSync(githubEnvPath, `DESCRIPTION="${escapedDescription}"\n`);
+              fs.appendFileSync(githubEnvPath, `FOUND=true\n`);
+            
             } catch (error) {
               if (error.status === 404) {
                 console.log('No releases found. This is the initial run.');
-                core.setOutput('description', '');
-                core.setOutput('found', false);
+            
+                const githubEnvPath = process.env.GITHUB_ENV;
+                fs.appendFileSync(githubEnvPath, `DESCRIPTION=''\n`);
+                fs.appendFileSync(githubEnvPath, `FOUND=false\n`);
               } else {
                 throw error;
               }
@@ -65,18 +75,24 @@ jobs:
       - name: Check for new versions and set outputs
         id: set-output
         run: |
-          if [ "${{ steps.latest-release.outputs.found }}" != "true" ]; then
+          if [ "$FOUND" != "true" ]; then
             echo "new_release=true" >> $GITHUB_OUTPUT
           else
-            LATEST_DESCRIPTION="${{ steps.latest-release.outputs.description }}"
-            if [[ "$LATEST_DESCRIPTION" == *"Web version: ${{ env.LATEST_COMMIT_HASH }}"* && "$LATEST_DESCRIPTION" == *"Server version: ${{ env.LATEST_SERVER_TAG }}"* ]]; then
+            if [[ "$DESCRIPTION" == *"$LATEST_COMMIT_HASH"* && "$DESCRIPTION" == *"$LATEST_SERVER_TAG"* ]]; then
               echo "new_release=false" >> $GITHUB_OUTPUT
             else
               echo "new_release=true" >> $GITHUB_OUTPUT
             fi
           fi
-          echo "latest_commit_hash=${{ env.LATEST_COMMIT_HASH }}" >> $GITHUB_OUTPUT
-          echo "latest_server_tag=${{ env.LATEST_SERVER_TAG }}" >> $GITHUB_OUTPUT
+          echo "latest_commit_hash=$LATEST_COMMIT_HASH" >> $GITHUB_OUTPUT
+          echo "latest_server_tag=$LATEST_SERVER_TAG" >> $GITHUB_OUTPUT
+
+      - name: Debug Variables
+        run: |
+          echo "DESCRIPTION: $DESCRIPTION"
+          echo "FOUND: $FOUND"
+          echo "LATEST_COMMIT_HASH: $LATEST_COMMIT_HASH"
+          echo "LATEST_SERVER_TAG: $LATEST_SERVER_TAG"
 
       # Step 7: Upload stremio-web and stremio-server as artifacts
       - name: Upload stremio-web and stremio-server
