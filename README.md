@@ -35,6 +35,7 @@ Visit the [Releases Tab](https://github.com/Zaarrg/stremio-web-desktop/releases)
 1. **Download**: Visit the [Releases Tab](https://github.com/Zaarrg/stremio-web-desktop/releases) and get the latest version for your OS.
 2. **Install**:
     - Windows: Run the `.exe` installer or unzip the `.zip` file.
+      - Installer installation path ``%AppData%\Roaming\stremio-web-desktop``
     - Linux: Install the `.deb` or `.rpm` package.
     - macOS: Open the `.dmg` file and drag the app to the Applications folder.
 3. **Run**: Launch the app and enjoy Stremio Web on your desktop.
