@@ -2,8 +2,8 @@ name: Docker Build and Release
 
 on:
   schedule:
-    - cron: "0 0 * * *" # Run every day at midnight
-  workflow_dispatch: # Allow manual trigger
+    - cron: "0 0 * * *" # Runs every day at midnight
+  workflow_dispatch: # Allows manual trigger
 
 jobs:
   fetch-and-check:
@@ -18,7 +18,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '20'
 
       # Step 3: Install dependencies
       - name: Install dependencies
@@ -35,27 +35,42 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const latestRelease = await github.rest.repos.getLatestRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-            });
-            const description = latestRelease.data.body;
-            core.setOutput('result', description);
+            try {
+              const latestRelease = await github.rest.repos.getLatestRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+              });
+              core.setOutput('description', latestRelease.data.body || '');
+              core.setOutput('found', true);
+            } catch (error) {
+              if (error.status === 404) {
+                console.log('No releases found. This is the initial run.');
+                core.setOutput('description', '');
+                core.setOutput('found', false);
+              } else {
+                throw error;
+              }
+            }
 
       # Step 6: Compare fetched versions with release versions
       - name: Check for new versions
         id: compare-versions
         run: |
-          echo "Latest release description: ${{ steps.latest-release.outputs.result }}"
-          echo "Fetched web version: ${{ env.LATEST_COMMIT_HASH }}"
-          echo "Fetched server version: ${{ env.LATEST_SERVER_TAG }}"
-
-          if [[ "${{ steps.latest-release.outputs.result }}" == *"Web version: ${{ env.LATEST_COMMIT_HASH }}"* && "${{ steps.latest-release.outputs.result }}" == *"Server version: ${{ env.LATEST_SERVER_TAG }}"* ]]; then
-            echo "No new versions detected."
-            echo "new_release=false" >> $GITHUB_ENV
-          else
-            echo "New versions detected!"
+          if [ "${{ steps.latest-release.outputs.found }}" != "true" ]; then
+            echo "No previous release found. Proceeding with initial release."
             echo "new_release=true" >> $GITHUB_ENV
+          else
+            echo "Latest release description: ${{ steps.latest-release.outputs.description }}"
+            echo "Fetched web version: ${{ env.LATEST_COMMIT_HASH }}"
+            echo "Fetched server version: ${{ env.LATEST_SERVER_TAG }}"
+          
+            if [[ "${{ steps.latest-release.outputs.description }}" == *"Web version: ${{ env.LATEST_COMMIT_HASH }}"* && "${{ steps.latest-release.outputs.description }}" == *"Server version: ${{ env.LATEST_SERVER_TAG }}"* ]]; then
+              echo "No new versions detected."
+              echo "new_release=false" >> $GITHUB_ENV
+            else
+              echo "New versions detected!"
+              echo "new_release=true" >> $GITHUB_ENV
+            fi
           fi
 
       # Step 7: Set output for next job
@@ -72,14 +87,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Log in to Docker Hub
-      - name: Log in to Docker Hub
+      # Step 2: Log in to GitHub Container Registry
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Step 3: Build and push Docker image
+      # Step 3: Build and push Docker image to GHCR
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
@@ -87,8 +103,8 @@ jobs:
           file: Dockerfile
           push: true
           tags: |
-            zaarrg/stremio-web-desktop:latest
-            zaarrg/stremio-web-desktop:${{ env.LATEST_COMMIT_HASH }}-${{ env.LATEST_SERVER_TAG }}
+            ghcr.io/${{ github.repository_owner }}/stremio-web-desktop:latest
+            ghcr.io/${{ github.repository_owner }}/stremio-web-desktop:${{ env.LATEST_COMMIT_HASH }}-${{ env.LATEST_SERVER_TAG }}
 
       # Step 4: Create GitHub Release
       - name: Create GitHub Release
@@ -104,6 +120,5 @@ jobs:
 
             Pull the image:
             ```
-            docker pull zaarrg/stremio-web-desktop:latest
+            docker pull ghcr.io/${{ github.repository_owner }}/stremio-web-desktop:latest
             ```
-

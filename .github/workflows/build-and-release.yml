@@ -3,7 +3,7 @@ name: Nightly Build and Release
 on:
   schedule:
     - cron: "0 0 * * *" # Runs every day at midnight (UTC)
-  workflow_dispatch: # Allows manual trigger.
+  workflow_dispatch: # Allows manual trigger
 
 jobs:
   check-and-build:
@@ -18,7 +18,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '20'
 
       # Step 3: Fetch latest Stremio versions
       - name: Fetch latest Stremio versions
@@ -31,27 +31,42 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const latestRelease = await github.rest.repos.getLatestRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-            });
-            const description = latestRelease.data.body;
-            core.setOutput('result', description);
+            try {
+              const latestRelease = await github.rest.repos.getLatestRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+              });
+              core.setOutput('description', latestRelease.data.body || '');
+              core.setOutput('found', true);
+            } catch (error) {
+              if (error.status === 404) {
+                console.log('No releases found. This is the initial run.');
+                core.setOutput('description', '');
+                core.setOutput('found', false);
+              } else {
+                throw error;
+              }
+            }
 
       # Step 5: Compare fetched versions with release versions
       - name: Check for new versions
         id: compare-versions
         run: |
-          echo "Latest release description: ${{ steps.latest-release.outputs.result }}"
-          echo "Fetched web version: ${{ env.LATEST_COMMIT_HASH }}"
-          echo "Fetched server version: ${{ env.LATEST_SERVER_TAG }}"
-
-          if [[ "${{ steps.latest-release.outputs.result }}" == *"Web version: ${{ env.LATEST_COMMIT_HASH }}"* && "${{ steps.latest-release.outputs.result }}" == *"Server version: ${{ env.LATEST_SERVER_TAG }}"* ]]; then
-            echo "No new versions detected."
-            echo "new_release=false" >> $GITHUB_ENV
-          else
-            echo "New versions detected!"
+          if [ "${{ steps.latest-release.outputs.found }}" != "true" ]; then
+            echo "No previous release found. Proceeding with initial release."
             echo "new_release=true" >> $GITHUB_ENV
+          else
+            echo "Latest release description: ${{ steps.latest-release.outputs.description }}"
+            echo "Fetched web version: ${{ env.LATEST_COMMIT_HASH }}"
+            echo "Fetched server version: ${{ env.LATEST_SERVER_TAG }}"
+
+            if [[ "${{ steps.latest-release.outputs.description }}" == *"Web version: ${{ env.LATEST_COMMIT_HASH }}"* && "${{ steps.latest-release.outputs.description }}" == *"Server version: ${{ env.LATEST_SERVER_TAG }}"* ]]; then
+              echo "No new versions detected."
+              echo "new_release=false" >> $GITHUB_ENV
+            else
+              echo "New versions detected!"
+              echo "new_release=true" >> $GITHUB_ENV
+            fi
           fi
 
       # Step 6: Set output for next job
@@ -75,7 +90,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '20'
 
       # Step 3: Install dependencies
       - name: Install dependencies
