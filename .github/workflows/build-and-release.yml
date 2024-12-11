@@ -80,7 +80,7 @@ jobs:
 
       - name: Debug Variables
         run: |
-          echo ${{ steps.latest-release.outputs.description }}
+          echo "${{ steps.latest-release.outputs.description }}"
           echo "LATEST_COMMIT_HASH: $LATEST_COMMIT_HASH"
           echo "LATEST_SERVER_TAG: $LATEST_SERVER_TAG"
 
@@ -201,7 +201,7 @@ jobs:
           tag: v${{ github.run_number }}
           name: "Stremio Web Desktop v${{ github.run_number }}"
           body: |
-            Web version: ${{needs.check-and-build.outputs.latest_commit_hash}}
+            Web version: "${{needs.check-and-build.outputs.latest_commit_hash}}"
             Server version: ${{needs.check-and-build.outputs.latest_server_tag}}
           artifacts: |
             out/windows/**/*.zip
