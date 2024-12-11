@@ -71,7 +71,7 @@ jobs:
 
   build:
     needs: check-and-build
-    if: env.new_release == 'true'
+    if: ${{ env.new_release == 'true' }}
     strategy:
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
@@ -117,7 +117,7 @@ jobs:
 
   release:
     needs: build
-    if: env.new_release == 'true'
+    if: ${{ env.new_release == 'true' }}
     runs-on: ubuntu-latest
 
     steps:

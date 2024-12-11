@@ -75,7 +75,7 @@ jobs:
 
   docker-build-and-push:
     needs: fetch-and-check
-    if: env.new_release == 'true'
+    if: ${{ env.new_release == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
