@@ -80,6 +80,22 @@ COPY src/stremio-web/build /app/build
 # Install dependencies for the HTTP server
 RUN npm install -g http-server
 
+# full path to the ffmpeg binary
+#ENV FFMPEG_BIN=
+
+# full path to the ffprobe binary
+#ENV FFPROBE_BIN=
+
+# Custom application path for storing server settings, certificates, etc
+#ENV APP_PATH=
+
+# Use `NO_CORS=1` to disable the server's CORS checks
+#ENV NO_CORS=
+
+# "Docker image shouldn't attempt to find network devices or local video players."
+# See: https://github.com/Stremio/server-docker/issues/7
+ENV CASTING_DISABLED=1
+
 VOLUME ["/root/.stremio-server"]
 
 # Expose the ports for the Stremio server and HTTP server

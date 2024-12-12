@@ -2,6 +2,14 @@ const { app, BrowserWindow, ipcMain, session } = require('electron');
 const path = require('path');
 const { initApiKeyLogic } = require('./plugins/logic/api_key');
 
+const platform = process.platform;
+//Stremio Server ENVs
+process.env['APP_PATH'] = path.join(__dirname, 'stremio-server');
+if (platform === 'win32') {
+    process.env['FFMPEG_BIN'] = path.join(__dirname, 'ffmpeg', 'ffmpeg.exe');
+    process.env['FFPROBE_BIN'] = path.join(__dirname, 'ffmpeg', 'ffprobe.exe');
+}
+
 let mainWindow, apiKey;
 
 function createWindow() {
