@@ -23,6 +23,45 @@
   <img src="https://i.imgur.com/s3vwk0z.png" alt="Stremio Web Desktop Screenshot" width="600" />
 </p>
 
+## 📥 **Disclaimer**
+
+⚠️ **Important Notice:**
+- Using this **Electron/Chromium** build **forces Stremio to always transcode** your media. This means you **won't receive native 4K** playback, as everything is transcoded to **1920p**.
+
+🔧 **Recommended Solution: Use default [Stremio app](https://www.stremio.com/downloads) instead**
+
+To prevent transcoding and utilize the **default Stremio app**, follow these steps:
+
+1. ### 🛠️ **Use the Default Stremio App (`stremio-shell`):**
+    - This allows you to use the **Web v5 UI** without transcoding.
+
+2. ### ➕ **Add Start Argument:**
+    - **Add** the following argument to Stremio's start command:
+      ```
+      --webui-url=https://web.stremio.com/
+      ```
+    - **Alternatively**, if you're using a self-hosted Docker Web UI, use:
+      ```
+      --webui-url=https://stremio.mydomain.com/
+      ```
+
+3. ### 🪟 **Windows Example:**
+    - **Right-click** on `stremio.exe`.
+    - Select **Create Shortcut**.
+    - **Right-click** on the created shortcut and choose **Properties**.
+    - In the **Target** field, **append** the start argument:
+      ```
+      --webui-url=https://web.stremio.com/
+      ```
+    - **Example:**
+      ```
+      "C:\Path\to\stremio.exe" --webui-url=https://web.stremio.com/
+      ```
+
+✅ **Outcome:**
+- Stremio will **run with the v5 Web UI** and **will not use transcoding**, enabling **native playback**.
+
+
 ## 📥 **Downloads**
 Visit the [Releases Tab](https://github.com/Zaarrg/stremio-web-desktop/releases) to download the appropriate version for your platform or use Docker to run the app.
 
