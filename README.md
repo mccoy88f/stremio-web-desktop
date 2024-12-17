@@ -28,7 +28,14 @@
 ⚠️ **Important Notice:**
 - Using this **Electron/Chromium** build **forces Stremio to always transcode** your media. This means you **won't receive native 4K** playback, as everything is transcoded to **1920p**.
 
-🔧 **Recommended Solution: Use default [Stremio app](https://www.stremio.com/downloads) instead**
+🔧 **Solution**
+
+1. Use default [Stremio app](https://www.stremio.com/downloads) instead
+
+2. Or use  [Stremio app v5 Support](https://github.com/Zaarrg/stremio-shell-web-v5) instead
+
+> **⏳ Note:** Recommended is the Stremio app with v5 support. As this fixes some bugs like very unresponsive ui. When using the Stremio app v5 `--webui-url` is not needed and the steps below can be skipped.
+
 
 To prevent transcoding and utilize the **default Stremio app**, follow these steps:
 
