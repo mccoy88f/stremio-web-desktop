@@ -28,6 +28,9 @@
 ⚠️ **Important Notice:**
 - Using this **Electron/Chromium** build **forces Stremio to always transcode** your media. This means you **won't receive native 4K** playback, as everything is transcoded to **1920p**.
 
+> **⚡ New:** Use the this [Stremio Desktop App](https://github.com/Zaarrg/stremio-desktop-v5) instead. Build with latest qt6 with native 4k playback. No transcoding.
+
+
 🔧 **Solution**
 
 1. Use default [Stremio app](https://www.stremio.com/downloads) instead
