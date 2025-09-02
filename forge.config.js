@@ -38,14 +38,15 @@ module.exports = {
                 },
             },
         },
-        {
-            name: '@electron-forge/maker-dmg',
-            config: {
-                icon: path.join(__dirname, 'src/icon.icns'),
-                overwrite: true,
-                format: 'ULFO',
-            },
-        },
+        // Temporaneamente disabilitato per problemi con ds-store
+        // {
+        //     name: '@electron-forge/maker-dmg',
+        //     config: {
+        //         icon: path.join(__dirname, 'src/icon.icns'),
+        //         overwrite: true,
+        //         format: 'ULFO',
+        //     },
+        // },
     ],
     plugins: [
         {
