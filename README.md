@@ -16,12 +16,37 @@
 
 ## 🌟 **Features**
 - 📦 **Bundled Latest Stremio Web and Server**: Always up-to-date with Stremio Web v5 and the latest Stremio Server.
+- 🌍 **Multilingual Support**: Complete Italian and English language support with automatic system locale detection.
+- ⌨️ **Enhanced Navigation**: Full navigation menu with keyboard shortcuts for better accessibility.
 - 🔧 **Custom Plugin Support**:
     - **Server API Key**: Adds an API key to every Stremio request, useful to make addons only callable by Stremio.
 
 <p align="center">
   <img src="https://i.imgur.com/s3vwk0z.png" alt="Stremio Web Desktop Screenshot" width="600" />
 </p>
+
+## 🆕 **What's New in v1.1.0**
+
+### 🌍 **Multilingual Support**
+- **Automatic Language Detection**: The app automatically detects your system language and displays menus in Italian or English
+- **Complete Translation**: All menu items, dialogs, and interface elements are fully translated
+- **Seamless Experience**: No configuration needed - just works based on your system settings
+
+### ⌨️ **Enhanced Navigation Menu**
+- **Complete Navigation**: Home, Discover, Library, Calendar, Addons, and Settings menu items
+- **Keyboard Shortcuts**: 
+  - `Cmd+1` - Home
+  - `Cmd+2` - Discover  
+  - `Cmd+3` - Library
+  - `Cmd+4` - Calendar
+  - `Cmd+5` - Addons
+  - `Cmd+,` - Settings
+- **Professional Interface**: Better organized menu structure with proper translations
+
+### 🔧 **Improved User Experience**
+- **Enhanced About Dialog**: Detailed app information with version details
+- **Better Code Organization**: Cleaner, more maintainable code structure
+- **Stability Improvements**: Better error handling and app stability
 
 ## 📥 **Disclaimer**
 
@@ -73,7 +98,9 @@ To prevent transcoding and utilize the **default Stremio app**, follow these ste
 
 
 ## 📥 **Downloads**
-Visit the [Releases Tab](https://github.com/Zaarrg/stremio-web-desktop/releases) to download the appropriate version for your platform or use Docker to run the app.
+Visit the [Releases Tab](https://github.com/mccoy88f/stremio-web-desktop/releases) to download the appropriate version for your platform or use Docker to run the app.
+
+> **🌍 Enhanced Version**: This fork includes multilingual support (Italian/English) and enhanced navigation features.
 
 | Platform     | Format                  |
 |--------------|-------------------------|
@@ -83,7 +110,7 @@ Visit the [Releases Tab](https://github.com/Zaarrg/stremio-web-desktop/releases)
 | **Docker**   | `ghcr.io/zaarrg/stremio-web-desktop:latest` |
 
 ## 🛠️ **How to Use**
-1. **Download**: Visit the [Releases Tab](https://github.com/Zaarrg/stremio-web-desktop/releases) and get the latest version for your OS.
+1. **Download**: Visit the [Releases Tab](https://github.com/mccoy88f/stremio-web-desktop/releases) and get the latest version for your OS.
 2. **Install**:
     - **Windows**: Run the `.exe` installer or unzip the `.zip` file.
         - Installer installation path ``%AppData%\Local\stremio-web-desktop``
@@ -171,6 +198,14 @@ This project is not affiliated with **Stremio** in any way.
 ## 🤝 **Support Development**
 If you enjoy this project and want to support further development, consider [buying me a coffee](https://ko-fi.com/zaarrg). Your support means a lot! ☕
 
+## 🤝 **Credits**
+
+- **Original Project**: [Zaarrg/stremio-web-desktop](https://github.com/Zaarrg/stremio-web-desktop)
+- **Enhanced Version**: [mccoy88f/stremio-web-desktop](https://github.com/mccoy88f/stremio-web-desktop)
+- **Multilingual Support**: Added by the community fork
+- **Enhanced Navigation**: Improved user experience with keyboard shortcuts
+
 <p align="center">
-  <strong>⭐ Made with ❤️ by <a href="https://github.com/Zaarrg">Zaarrg</a> ⭐</strong>
+  <strong>⭐ Made with ❤️ by <a href="https://github.com/Zaarrg">Zaarrg</a> ⭐</strong><br/>
+  <strong>🌍 Enhanced with ❤️ by <a href="https://github.com/mccoy88f">mccoy88f</a> ⭐</strong>
 </p>
