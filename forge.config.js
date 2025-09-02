@@ -12,7 +12,7 @@ module.exports = {
         {
             name: '@electron-forge/maker-squirrel',
             config: {
-                name: 'stremio-web-desktop',
+                name: 'Stremio',
                 setupIcon: path.join(__dirname, 'src/icon.ico'),
             }
         },

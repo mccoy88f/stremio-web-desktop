@@ -3,6 +3,14 @@ out
 src/stremio-server
 src/stremio-web
 .idea
+
+# Build artifacts
+*.dmg
+*.zip
+*.tar.gz
+
+# macOS
+.DS_Store
 # Logs
 logs
 *.log

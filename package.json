@@ -1,6 +1,6 @@
 {
   "name": "stremio-web-desktop",
-  "productName": "stremio-web-desktop",
+  "productName": "Stremio",
   "version": "1.0.0",
   "description": "Stremio Web as Electron Desktop App. Latest Stremio Web v5 and Server bundled as electron app and docker image",
   "main": "src/index.js",
@@ -22,6 +22,8 @@
     "@electron-forge/plugin-auto-unpack-natives": "^7.6.0",
     "@electron-forge/plugin-fuses": "^7.6.0",
     "@electron/fuses": "^1.8.0",
+    "appdmg": "^0.6.6",
+    "async": "^3.2.6",
     "electron": "33.2.1"
   },
   "keywords": [],
