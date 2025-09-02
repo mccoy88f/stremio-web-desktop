@@ -1,6 +1,9 @@
 const path = require('path');
 const { loadConfig, saveConfig } = require('./config');
 
+// Traccia se l'handler è già stato registrato
+let handlerRegistered = false;
+
 function generateApiKey() {
     return [...Array(32)].map(() => Math.random().toString(36)[2]).join('');
 }
@@ -17,9 +20,13 @@ function initApiKeyLogic(app, ipcMain) {
 
     const apiKey = config.api_key;
 
-    ipcMain.handle('get-api-key', () => {
-        return apiKey;
-    });
+    // Registra l'handler solo se non è già stato registrato
+    if (!handlerRegistered) {
+        ipcMain.handle('get-api-key', () => {
+            return apiKey;
+        });
+        handlerRegistered = true;
+    }
 
     return apiKey;
 }
